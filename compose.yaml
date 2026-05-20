@@ -57,6 +57,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./suricata/logs:/tmp/suricata:ro
       - /etc/machine-id:/etc/machine-id:ro
+      - promtail-positions:/positions
     security_opt:
       - no-new-privileges:true
     cap_drop:
