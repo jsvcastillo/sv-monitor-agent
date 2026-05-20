@@ -32,13 +32,17 @@ services:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
     devices:
       - /dev/kmsg:/dev/kmsg:ro
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - SYSLOG
+      - DAC_READ_SEARCH
     read_only: true
 
   promtail:
