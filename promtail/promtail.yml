@@ -15,7 +15,7 @@ scrape_configs:
           - localhost
         labels:
           job: varlogs
-          host: ${HOSTNAME}
+          agent_host: ${HOSTNAME}
           __path__: /var/log/*.log
   - job_name: docker
     static_configs:
@@ -23,7 +23,7 @@ scrape_configs:
           - localhost
         labels:
           job: docker
-          host: ${HOSTNAME}
+          agent_host: ${HOSTNAME}
           __path__: /var/lib/docker/containers/*/*-json.log
   - job_name: suricata
     pipeline_stages:
@@ -56,4 +56,5 @@ scrape_configs:
         - localhost
         labels:
           job: suricata_logs
+          agent_host: ${HOSTNAME}
           __path__: /tmp/suricata/eve.json
