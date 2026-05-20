@@ -63,7 +63,6 @@ af-packet:
     cluster-type: cluster_flow
     defrag: yes
     use-mmap: yes
-    copy-mode: none
 
 app-layer:
   protocols:

@@ -45,6 +45,9 @@ services:
     image: grafana/promtail:3.2.1
     container_name: promtail
     restart: unless-stopped
+    user: "0:0"
+    group_add:
+      - "4"
     environment:
       LOKI_URL: ${LOKI_URL}
       HOSTNAME: ${HOSTNAME}
