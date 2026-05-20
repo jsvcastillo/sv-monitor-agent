@@ -1,0 +1,1 @@
+docker compose exec -u suricata suricata suricata-update -f
