@@ -1,35 +1,48 @@
 services:
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.8.2
     container_name: node-exporter
     restart: unless-stopped
     pid: host
     ports:
-      - "9100:9100"
+      - "127.0.0.1:9100:9100"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/rootfs'
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)
+      - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: cadvisor
     restart: unless-stopped
-    privileged: true
     ports:
-      - 8080:8080
+      - "127.0.0.1:8080:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.2.1
     container_name: promtail
     restart: unless-stopped
     environment:
@@ -42,23 +55,38 @@ services:
       - ./promtail/promtail.yml:/etc/promtail/config.yml:ro
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./suricata/logs:/suricata/logs:ro
+      - ./suricata/logs:/tmp/suricata:ro
       - /etc/machine-id:/etc/machine-id:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
 
   suricata:
-    image: jasonish/suricata:latest
+    image: jasonish/suricata:8.0
     container_name: suricata
     restart: unless-stopped
     network_mode: host
+    security_opt:
+      - no-new-privileges:true
     cap_add:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
     volumes:
-      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
-      - ./suricata/rules:/var/lib/suricata/rules:ro
-      - ./suricata/logs:/var/log/suricata
+    - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml
+    - ./suricata/rules:/var/lib/suricata/rules
+    - ./suricata/logs:/var/log/suricata
+    - ./suricata/local.rules:/var/lib/suricata/rules/local.rules
+    # - ./suricata/classification.config:/etc/suricata/classification.config
+    - ./suricata/threshold.config:/etc/suricata/threshold.config
+    - ./suricata/enable.conf:/etc/suricata/enable.conf
+    - ./suricata/disable.conf:/etc/suricata/disable.conf
+    - promtail-positions:/tmp
     command: >
-      suricata
+      --af-packet=eth0
       -c /etc/suricata/suricata.yaml
-      -i eth0
+
+volumes:
+  promtail-positions:

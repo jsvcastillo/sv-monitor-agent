@@ -33,6 +33,6 @@ scrape_configs:
       - targets:
           - localhost
         labels:
-          job: suricata
+          job: suricata_logs
           host: ${HOSTNAME}
-          __path__: /suricata/logs/eve.json
+          __path__: /tmp/suricata/eve.json
